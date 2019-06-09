@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'meiduo_mall.apps.users',
+    'users',
 ]
 
 MIDDLEWARE = [
@@ -55,7 +55,7 @@ ROOT_URLCONF = 'meiduo_mall.urls'
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.jinja2.jinja2',
+        'BACKEND': 'django.template.backends.jinja2.Jinja2',
         'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
