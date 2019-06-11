@@ -4,6 +4,7 @@ from django.views import View
 from django import http
 import re
 from users.models import User
+from meiduo_mall.utils.response_code import RETCODE
 
 class RegisterView(View):
 
@@ -38,9 +39,28 @@ class RegisterView(View):
 
         # 业务逻辑
         #用户登陆成功保存账号密码并对密码进行加密
-        user = User.objects.create(username=username, password=password, mobile=mobile)
+        user = User.objects.create_user(username=username, password=password, mobile=mobile)
         #用户登陆成功保存用户信息到session中
         login(request, user)
         #登陆成功后响应跳转首页
         return redirect('/')
 
+#判断用户名是否重复注册
+class UsernameCountView(View):
+
+    def get(self, request, username):
+        #使用username查询user表,得到mobile的数量
+        count = User.objects.filter(username=username).count()
+        content = {'count': count, 'code':RETCODE.OK, 'errmsg': 'OK'}
+
+        return http.JsonResponse(content)
+
+#判断手机是否重复注册
+class MobileCountView(View):
+
+    def get(self, request, mobile):
+        #使用username查询user表,得到mobile的数量
+        count = User.objects.filter(mobile=mobile).count()
+        content = {'count': count, 'code':RETCODE.OK, 'errmsg': 'OK'}
+
+        return http.JsonResponse(content)
