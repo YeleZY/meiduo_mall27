@@ -3,6 +3,9 @@ from django.shortcuts import render, redirect
 from django.views import View
 from django import http
 import re
+
+from django_redis import get_redis_connection
+
 from users.models import User
 from meiduo_mall.utils.response_code import RETCODE
 
@@ -22,7 +25,7 @@ class RegisterView(View):
         allow = query_dict.get('allow')
 
         # 数据校验
-        if all([username, password, password2, mobile, allow])is False:
+        if all([username, password, password2, mobile, sms_code, allow])is False:
             return http.HttpResponseForbidden('缺少必传参数')
 
         if not re.match(r'^[a-zA-Z0-9_-]{5,20}$', username):
@@ -36,6 +39,24 @@ class RegisterView(View):
 
         if not re.match(r'^1[3-9]\d{9}$', mobile):
             return http.HttpResponseForbidden('请输入有效的手机号')
+
+        #创建redis连接对象
+        redis_conn = get_redis_connection('verily_code')
+        #获取redis中的短信验证码
+        sms_code_server = redis_conn.get('sms_%s' %mobile)
+
+        #判断验证码是否过期
+        if sms_code_server is None:
+            return http.HttpResponseForbidden('短信验证码已过期')
+
+        #删除redis中已经被使用的验证码
+        redis_conn.delete('sms_%s' %mobile)
+        #由bytes类型转换为str类型
+        sms_code_server = sms_code_server.decode()
+
+        #判断用户输入的验证码是否正确
+        if sms_code != sms_code_server:
+            return http.HttpResponseForbidden('验证码输入有误')
 
         # 业务逻辑
         #用户登陆成功保存账号密码并对密码进行加密
