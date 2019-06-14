@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 from django.shortcuts import render, redirect
 from django.views import View
 from django import http
@@ -117,4 +117,15 @@ class LoginView(View):
         response = redirect(request.GET.get('next', '/'))
         # 保存用户信息到cookies
         response.set_cookie('username', user.username, max_age=(settings.SECCION_COOKIE_AGE if remembered else None))
+        return response
+
+class LogoutView(View):
+    #退出登陆
+    def get(self, request):
+        logout(request)
+        #重定向到登陆页面
+        response = redirect('/login/')
+        #删除cookies保存的user信息
+        response.delete_cookie('username')
+
         return response
