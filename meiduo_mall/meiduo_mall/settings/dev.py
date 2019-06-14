@@ -198,3 +198,9 @@ LOGGING = {
 }
 #修改用户认证的模型类
 AUTH_USER_MODEL = 'users.User'
+
+#指定用户认证后端
+AUTHENTICATION_BACKENDS = ['users.utils.UsernameMobileBackend']
+
+# 修改Django中登录界面的路由
+LOGIN_URL = '/login/'

@@ -1,6 +1,8 @@
 from django.conf import settings
-from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth import login, authenticate, logout, mixins
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
+from django.utils.decorators import method_decorator
 from django.views import View
 from django import http
 import re
@@ -129,3 +131,25 @@ class LogoutView(View):
         response.delete_cookie('username')
 
         return response
+
+# class InfoView(View):
+#     def get(self, request):
+#         #获取用户对象
+#         user = request.user
+#         #判断用户是否登陆，如果是返回用户中心，如果不是返回登陆界面
+#         if user.is_authenticated:
+#             return render(request, 'user_center_info.html')
+#         else:
+#             return redirect('/login/?next=/info/')
+
+
+# class InfoView(View):
+#     #装饰器方法展示用户中心
+#     @method_decorator(login_required)
+#     def get(self, request):
+#         return render(request, 'user_center_info.html')
+
+class InfoView(mixins.LoginRequiredMixin, View):
+    #扩展类展示用户中心
+    def get(self, request):
+        return render(request, 'user_center_info.html')
