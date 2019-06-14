@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 
-from .CCPRestSDK import REST
+from celery_tasks.sms.yuntongxun.CCPRestSDK import REST
 import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
 
@@ -29,20 +29,20 @@ _softVersion = '2013-12-26'
 # # @param datas 内容数据 格式为数组 例如：['12','34']，如不需替换请填 ''
 # # @param $tempId 模板Id
 #
-# def sendTemplateSMS(to, datas, tempId):
-#     # 初始化REST SDK
-#     rest = REST(serverIP, serverPort, softVersion)
-#     rest.setAccount(accountSid, accountToken)
-#     rest.setAppId(appId)
-#
-#     result = rest.sendTemplateSMS(to, datas, tempId)
-#     for k, v in result.iteritems():
-#
-#         if k == 'templateSMS':
-#             for k, s in v.iteritems():
-#                 print '%s:%s' % (k, s)
-#         else:
-#             print '%s:%s' % (k, v)
+def sendTemplateSMS(to, datas, tempId):
+    # 初始化REST SDK
+    rest = REST(_serverIP, _serverPort, _softVersion)
+    rest.setAccount(_accountSid, _accountToken)
+    rest.setAppId(_appId)
+
+    result = rest.sendTemplateSMS(to, datas, tempId)
+    for k, v in result.iteritems():
+
+        if k == 'templateSMS':
+            for k, s in v.iteritems():
+                print('%s:%s' % (k, s))
+        else:
+            print('%s:%s' % (k, v))
 
 
 class CCP(object):
@@ -75,4 +75,4 @@ class CCP(object):
 
 # if __name__ == '__main__':
 #     # 注意： 测试的短信模板编号为1
-#     CCP().send_template_sms('17600992168', ['1234', 5], 1)
+#     CCP().send_template_sms('17688944443', ['1234', 5], 1)

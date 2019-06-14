@@ -41,7 +41,7 @@ class RegisterView(View):
             return http.HttpResponseForbidden('请输入有效的手机号')
 
         #创建redis连接对象
-        redis_conn = get_redis_connection('verily_code')
+        redis_conn = get_redis_connection('verify_code')
         #获取redis中的短信验证码
         sms_code_server = redis_conn.get('sms_%s' %mobile)
 

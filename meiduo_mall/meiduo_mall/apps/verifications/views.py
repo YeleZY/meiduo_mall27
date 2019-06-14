@@ -34,7 +34,7 @@ class SmsCodeView(View):
         #创建reids数据库对象
         redis_conn = get_redis_connection('verify_code')
         #尝试获取数据库里面手机是否有发短信的标记
-        redis_flag = redis_conn.get('redis_flag_%s' %mobile)
+        redis_flag = redis_conn.get('redis_flag_%s' % mobile)
         #如果有返回
         if redis_flag:
             return http.JsonResponse({'code': RETCODE.THROTTLINGERR, 'errmsg': '获取手机短信过于频繁'})
@@ -61,7 +61,7 @@ class SmsCodeView(View):
             return http.HttpResponseForbidden('图片验证码输入错误')
 
         #随机生成一个6位数的数字作为短信验证码
-        sms_code = '%06d' % randint(0-999999)
+        sms_code = '%06d' % randint(0, 999999)
         logger.info(sms_code)
 
         #redis管道技术
@@ -76,4 +76,4 @@ class SmsCodeView(View):
         #给当前手机发送短信验证码
         send_sms_code.delay(mobile, sms_code)
         #响应
-        return http.JsonResponse([{'code': RETCODE.OK, 'errmsg': '发送短信验证码成功'}])
+        return http.JsonResponse({'code': RETCODE.OK, 'errmsg': '发送短信验证码成功'})
