@@ -1,4 +1,5 @@
-from django.contrib.auth import login
+from django.conf import settings
+from django.contrib.auth import login, authenticate
 from django.shortcuts import render, redirect
 from django.views import View
 from django import http
@@ -85,3 +86,35 @@ class MobileCountView(View):
         content = {'count': count, 'code':RETCODE.OK, 'errmsg': 'OK'}
 
         return http.JsonResponse(content)
+
+class LoginView(View):
+    #展示登陆界面
+    def get(self, request):
+        return render(request, 'login.html')
+
+    #接收请求
+    def post(self, request):
+        #接受登陆数据
+        query_dict = request.POST
+        username = query_dict.get('username')
+        password = query_dict.get('password')
+        remembered = query_dict.get('remembered')
+
+        #登陆认证
+        user = authenticate(request, username=username, password=password)
+        #验证密码
+        if user is None:
+            return render(request, 'login.html', {'account_errmsg': '账号或密码错误'})
+
+        #状态保持
+        login(request,user)
+        #判断用户是否勾选了记住登陆
+        if remembered is None:
+            request.session.set_expiry(0)#session为None是指定过期时间为2周，为0是浏览器关闭删除
+            #cookies为None是指定浏览器关闭就删除
+
+        #重定向到首页
+        response = redirect(request.GET.get('next', '/'))
+        # 保存用户信息到cookies
+        response.set_cookie('username', user.username, max_age=(settings.SECCION_COOKIE_AGE if remembered else None))
+        return response
