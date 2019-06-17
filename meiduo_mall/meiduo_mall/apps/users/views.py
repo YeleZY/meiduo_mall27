@@ -5,12 +5,15 @@ from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
 from django.views import View
 from django import http
-import re
+import re, json
 
 from django_redis import get_redis_connection
 
+from meiduo_mall.utils.views import LoginRequiredView
 from users.models import User
 from meiduo_mall.utils.response_code import RETCODE
+from users.utils import genreate_verify_email_url
+from celery_tasks.email.tasks import send_verify_email
 
 class RegisterView(View):
 
@@ -153,3 +156,27 @@ class InfoView(mixins.LoginRequiredMixin, View):
     #扩展类展示用户中心
     def get(self, request):
         return render(request, 'user_center_info.html')
+
+class EmailView(LoginRequiredView):
+    #接收请求体中的email, body {'email':'xxxxx'}
+    def put(self, request):
+        json_str = request.body.decode()#body返回的是bytes类型数据,所以解码转为json字符串
+        json_dict = json.loads(json_str)#将json字符串转为json字典
+        email = json_dict.get('email')
+
+        #校验邮箱
+        if not re.match(r'^[a-z0-9][\w\.\-]*@[a-z0-9\-]+(\.[a-z]{2,5}){1,2}$', email):
+            return http.HttpResponseForbidden('邮箱格式错误')
+
+        #获取当前当前登陆用户user对象
+        user = request.user
+        #给user字段赋值
+        user.email = email
+        user.save()
+        #当设置好邮箱后，应该就对用户邮箱发个邮件
+        #生成邮箱激活url
+        verify_url = genreate_verify_email_url(user)
+        #cerely异步进行发送邮件
+        send_verify_email.delay(email,verify_url)
+        #响应
+        return http.JsonResponse({'code': RETCODE.OK, 'errmsg': '添加邮箱成功'})
