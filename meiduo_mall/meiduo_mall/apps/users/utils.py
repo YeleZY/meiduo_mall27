@@ -37,7 +37,24 @@ def genreate_verify_email_url(user):
     #对字典进行加密
     token = serializer.dumps(data).decode()
     # 拼接用户激活邮箱url
-    verify_url = settings.EMAIL_VERIFY_URL + '?token' + token
+    verify_url = settings.EMAIL_VERIFY_URL + '?token=' + token
     #返回响应
     return verify_url
+
+def check_cerify_email_token(token):
+    """对token进行解密并返回user或None"""
+    # 创建加密对象
+    serializer = Serializer(settings.SECRET_KEY, 60*60*24)
+    try:
+        data = serializer.loads(token)  # 解密
+        user_id = data.get('user_id')  # 解密没有问题后取出里面数据
+        email = data.get('user_email')
+        try:
+            user = User.objects.get(id=user_id, email=email)  # 查询唯一用户
+            return user  # 查询到直接返回
+        except User.DoesNotExist:
+            return None
+
+    except BadData:
+        return None
 

@@ -12,7 +12,7 @@ from django_redis import get_redis_connection
 from meiduo_mall.utils.views import LoginRequiredView
 from users.models import User
 from meiduo_mall.utils.response_code import RETCODE
-from users.utils import genreate_verify_email_url
+from users.utils import genreate_verify_email_url,check_cerify_email_token
 from celery_tasks.email.tasks import send_verify_email
 
 class RegisterView(View):
@@ -121,7 +121,7 @@ class LoginView(View):
         #重定向到首页
         response = redirect(request.GET.get('next', '/'))
         # 保存用户信息到cookies
-        response.set_cookie('username', user.username, max_age=(settings.SECCION_COOKIE_AGE if remembered else None))
+        response.set_cookie('username', user.username, max_age=(settings.SESSION_COOKIE_AGE if remembered else None))
         return response
 
 class LogoutView(View):
@@ -180,3 +180,23 @@ class EmailView(LoginRequiredView):
         send_verify_email.delay(email,verify_url)
         #响应
         return http.JsonResponse({'code': RETCODE.OK, 'errmsg': '添加邮箱成功'})
+
+class EmailVerificationView(View):
+    """激活邮箱"""
+    def get(self, request):
+        #获取到查询参数token
+        token = request.GET.get('token')
+        if token is None:
+            return http.HttpResponseForbidden('缺少token参数')
+
+        # 对token进行解密并查询到要激活邮箱的那个用户
+        user = check_cerify_email_token(token)
+        # 如果没有查询到user,提前响应
+        if user is None:
+            return http.HttpResponseForbidden('token无效')
+        # 如果查询到user,修改它的email_active字段为True,再save()
+        user.email_active = True
+        user.save()
+        #响应
+        return redirect('/info/')
+
