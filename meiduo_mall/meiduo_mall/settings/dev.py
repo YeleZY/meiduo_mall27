@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'users',
     'oauth.apps.OauthConfig',
     'areas.apps.AreasConfig',
+    'contents.apps.ContentsConfig',  # 首页广告模块
+    'goods.apps.GoodsConfig',  # 商品模块
 ]
 
 MIDDLEWARE = [
