@@ -1,6 +1,8 @@
 from django.shortcuts import render
 from django.views import View
 
+from contents.models import ContentCategory
+from contents.utils import get_categories
 from goods.models import GoodsCategory, GoodsChannel
 
 """
@@ -23,30 +25,19 @@ class IndexView(View):
 
     def get(self, request):
 
-        # 包装商品分类数据大字典
-        categories = {}
-        # 查询所有商品分组数据
-        goods_channel_qs = GoodsChannel.objects.order_by('group_id', 'sequence')
-
-        # 遍历商品频道查询集
-        for channel_model in goods_channel_qs:
-
-            # 获取当前组号
-            group_id = channel_model.group_id
-
-            if group_id not in categories:
-                categories[group_id] = {
-                    'channels': [],
-                    'sub_cats': []
-                }
-            # 通过商品频道获取到一一对应的一级类别模型
-            cat1 = channel_model.category
-            cat1.url = channel_model.url
-            # 把一级类别添加到当前组中
-            categories[group_id]['channels'].append(cat1)
+        # 定义一个大字典用来装所有广告
+        contents = {}
+        # 获取出所有广告类别数据
+        content_category_qs = ContentCategory.objects.all()
+        for content_category in content_category_qs:
+            # 包装每种类型的广告数据
+            contents[content_category.key] = content_category.content_set.filter(status=True).order_by('sequence')
 
 
+
+        # 包装要渲染的数据
         context = {
-            'categories': categories
+            'categories': get_categories(),  # 商品分类数据
+            'contents': contents,  # 广告内容
         }
         return render(request, 'index.html', context)
