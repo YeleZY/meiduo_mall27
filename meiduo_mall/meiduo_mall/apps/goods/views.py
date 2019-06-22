@@ -54,3 +54,26 @@ class ListView(View):
             'page_num': page_num,  # 当前页码
         }
         return render(request, 'list.html', context)
+
+class HotGoodsView(View):
+    '''商品热销排序'''
+    def get(self, request ,category_id):
+        #校验
+        try:
+            cat3 = GoodsCategory.objects.get(id = category_id)
+        except GoodsCategory.DoesNotExist:
+            return http.HttpResponseForbidden('category_id不存在')
+        #取到category_id后查询获取商品3级下销量最高的前两个商品
+
+        sku_qs = cat3.sku_set.filter(is_launched = True).order_by('-sales')[:2]
+        #模型转字典
+        sku_list = []#用来装sku字典
+        for sku_model in sku_qs:
+            sku_list.append({
+                'id':category_id,
+                'price':sku_model.price,
+                'name':sku_model.name,
+                'default_image_url':sku_model.default_image.url
+            })
+        #响应
+        return http.JsonResponse({'code':RETCODE.OK, 'errmas':'ok', 'hot_skus': sku_list})
