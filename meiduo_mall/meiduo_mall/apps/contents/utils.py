@@ -39,6 +39,6 @@ def get_categories():
             cat2.sub_cats = cat3_qs
             # 将当前组中的每一个二级添加到sub_cats key对应的列表中
             categories[group_id]['sub_cats'].append(cat2)
-    from pprint import pprint
-    pprint(categories)
+    # from pprint import pprint
+    # pprint(categories)
     return categories
